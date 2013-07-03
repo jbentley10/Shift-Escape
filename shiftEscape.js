@@ -36,7 +36,7 @@ var Barrier = function(position) {
 var Robot = function(position) {
     //// A Robot is a game object
     // Default position if unspecified is at square 0, 0
-    this.boardPosition = position || {x: 0, y: 0};
+    this.boardPosition = position || {x: -400, y: 400};
     this.type = 'robot';
     this.geometry = new THREE.SphereGeometry(45, 20, 20);
     // Geometry should always be around origin
@@ -63,13 +63,82 @@ var Game = function() {
 Game.prototype.init = function() {
     var that = this;
     this.barriers = [];
-    this.barriers.push(new Barrier({x: 2, y: 1}));
+    
+    // First row of barriers
+    this.barriers.push(new Barrier({x: -3, y: -3}));
+    this.barriers.push(new Barrier({x: -2, y: -3}));
+    this.barriers.push(new Barrier({x: -1, y: -3}));
+    this.barriers.push(new Barrier({x: 0, y: -3}));
+    this.barriers.push(new Barrier({x: 1, y: -3}));
+    this.barriers.push(new Barrier({x: 2, y: -3}));
+    this.barriers.push(new Barrier({x: 3, y: -3}));
+    this.barriers.push(new Barrier({x: 4, y: -3}));
+    
+    // Second row of barriers
+    this.barriers.push(new Barrier({x: -3, y: -2}));
+    this.barriers.push(new Barrier({x: -2, y: -2}));
+    this.barriers.push(new Barrier({x: -1, y: -2}));
+    this.barriers.push(new Barrier({x: 0, y: -2}));
+    this.barriers.push(new Barrier({x: 1, y: -2}));
+    this.barriers.push(new Barrier({x: 2, y: -2}));
+    this.barriers.push(new Barrier({x: 3, y: -2}));
+    this.barriers.push(new Barrier({x: 4, y: -2}));
+    
+    // Third row of barriers
+    this.barriers.push(new Barrier({x: -3, y: -1}));
+    this.barriers.push(new Barrier({x: -2, y: -1}));
+    this.barriers.push(new Barrier({x: -1, y: -1}));
+    this.barriers.push(new Barrier({x: 0, y: -1}));
+    this.barriers.push(new Barrier({x: 1, y: -1}));
+    this.barriers.push(new Barrier({x: 2, y: -1}));
+    this.barriers.push(new Barrier({x: 3, y: -1}));
+    this.barriers.push(new Barrier({x: 4, y: -1}));
+
+    // Fourth row of barriers
+    this.barriers.push(new Barrier({x: -3, y: 0}));
+    this.barriers.push(new Barrier({x: -2, y: 0}));
+    this.barriers.push(new Barrier({x: -1, y: 0}));
+    this.barriers.push(new Barrier({x: 0, y: 0}));
+    this.barriers.push(new Barrier({x: 1, y: 0}));
+    this.barriers.push(new Barrier({x: 2, y: 0}));
+    this.barriers.push(new Barrier({x: 3, y: 0}));
+    this.barriers.push(new Barrier({x: 4, y: 0}));
+    
+    // Fifth row of barriers
+    this.barriers.push(new Barrier({x: -3, y: 1}));
+    this.barriers.push(new Barrier({x: -2, y: 1}));
+    this.barriers.push(new Barrier({x: -1, y: 1}));
+    this.barriers.push(new Barrier({x: 0, y: 1}));
     this.barriers.push(new Barrier({x: 1, y: 1}));
+    this.barriers.push(new Barrier({x: 2, y: 1}));
+    this.barriers.push(new Barrier({x: 3, y: 1}));
+    this.barriers.push(new Barrier({x: 4, y: 1}));
+    
+    // Sixth row of barriers
+    this.barriers.push(new Barrier({x: -3, y: 2}));
+    this.barriers.push(new Barrier({x: -2, y: 2}));
+    this.barriers.push(new Barrier({x: -1, y: 2}));
+    this.barriers.push(new Barrier({x: 0, y: 2}));
+    this.barriers.push(new Barrier({x: 1, y: 2}));
     this.barriers.push(new Barrier({x: 2, y: 2}));
+    this.barriers.push(new Barrier({x: 3, y: 2}));
+    this.barriers.push(new Barrier({x: 4, y: 2}));
+    
+    // Seventh row of barriers
+    this.barriers.push(new Barrier({x: -3, y: 3}));
+    this.barriers.push(new Barrier({x: -2, y: 3}));
+    this.barriers.push(new Barrier({x: -1, y: 3}));
+    this.barriers.push(new Barrier({x: 0, y: 3}));
+    this.barriers.push(new Barrier({x: 1, y: 3}));
+    this.barriers.push(new Barrier({x: 2, y: 3}));
+    this.barriers.push(new Barrier({x: 3, y: 3}));
+    this.barriers.push(new Barrier({x: 4, y: 3}));
+
+
     this.robot = new Robot({x: 0, y: 0});
     
     this.camera = new THREE.PerspectiveCamera(75, 4.0/3.0, 1, 10000);
-    this.camera.position.z = 500;
+    this.camera.position.z = 700;
     
     this.scene = new THREE.Scene();
     // Add all barriers to scene
