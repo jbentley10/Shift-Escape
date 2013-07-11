@@ -21,11 +21,19 @@ var robotPosition = null;
 
 var highlightPosition = null;
 
+var newPosition = null;
+
 var cubeLight = null;
 
 var Highlight = null;
 
-var numShifts = 10; 
+var numShifts = 10;
+
+var barrierArray = [];
+
+var i;
+
+var j;
 
 var board_to_world = function(position) {
     // Convert board position into world position
@@ -47,11 +55,12 @@ var highlight_to_world = function(position) {
 var Barrier = function(position) {
     // A Barrier is a game object
     // Default position if unspecified is at square 0, 0
+    this.isEmpty = false; 
     this.boardPosition = position || {x: -400, y: 400};
     this.type = 'barrier';
     this.geometry = new THREE.CubeGeometry(90, 90, 90);
     // Geometry should always be around origin
-    this.material = new THREE.MeshLambertMaterial({color: 0xff0000});
+    this.material = new THREE.MeshLambertMaterial({color: 0x0033CC});
     this.object = new THREE.Mesh(this.geometry, this.material);
     // A mesh is an Object3D, change its position to move
     this.object.position = board_to_world(this.boardPosition);
@@ -65,7 +74,7 @@ var Robot = function(position) {
     this.geometry = new THREE.SphereGeometry(45, 20, 20);
     // Geometry should always be around origin
     // Make it blue
-    this.material = new THREE.MeshPhongMaterial({color: 0x0000ff});
+    this.material = new THREE.MeshPhongMaterial({color: 0x0099CC});
     this.object = new THREE.Mesh(this.geometry, this.material);
     // A mesh is an Object3D, change its position to move
     this.object.position = robot_to_world(this.boardPosition);
@@ -77,7 +86,7 @@ var Highlight = function(position){
     this.geometry = new THREE.CubeGeometry(90, 90, 10);
     this.boardPosition = position || {x: -400, y: 400};
     this.type = 'highlight';
-    this.material = new THREE.MeshPhongMaterial({color: 0x45e1f5});
+    this.material = new THREE.MeshPhongMaterial({color: 0x00CC99});
     this.object = new THREE.Mesh(this.geometry, this.material);
     this.object.position = highlight_to_world(this.boardPosition);
 };
@@ -110,51 +119,39 @@ var Game = function() {
 
 Game.prototype.init = function() {
     var that = this;
-    this.barriers = [];
+    //this.barriers = [];
     
-    for(var i = -3; i < 5; i++) {
-        this.barriers.push(new Barrier({x: i, y: 1}));
-        this.barriers.push(new Barrier({x: i, y: 2}));
-        var topRow = this.barriers.push(new Barrier({x: i, y: 3}));      // top row
-        this.barriers.push(new Barrier({x: i, y: 0}));
-        this.barriers.push(new Barrier({x: i, y: -1}));
-        this.barriers.push(new Barrier({x: i, y: -2}));
-        this.barriers.push(new Barrier({x: i, y: -3}));
-        var bottomRow = this.barriers.push(new Barrier({x: i, y: -4}));     // bottom row
+    // Create a new 2D array to hold the position of the barriers
+    this.virtualBoard = new Array(8);
+    for (var i = 0; i < 8; i++){
+        this.virtualBoard[i] = new Array(8);
     }
     
-    var barrier1 = this.barriers.pop[0];
-    var barrier2 = this.barriers.pop[1];
-    var barrier3 = this.barriers.pop[2];
-    var barrier4 = this.barriers.pop[3];
-    var barrier5 = this.barriers.pop[4];
-    var barrier6 = this.barriers.pop[5];
-    var barrier7 = this.barriers.pop[6];
-    var barrier8 = this.barriers.pop[7];
-    var barrier9 = this.barriers.pop[8];
-    var barrier10 = this.barriers.pop[9];
-    var barrier11 = this.barriers.pop[10];
-    var barrier12 = this.barriers.pop[11];
-    var barrier13 = this.barriers.pop[12];
-    var barrier14 = this.barriers.pop[13];
-    var barrier15 = this.barriers.pop[14];
-    var barrier16 = this.barriers.pop[15];
+    for(var x = 0; x < 8; x++){
+        for(var y = 0; y < 8; y++){
+            this.virtualBoard[x][y] = new Barrier({x: x-3, y: y-3});
+        }
+    }
     
     // Initialize the robot 
-    this.robot = new Robot({x: -1, y: 4});
+    this.robot = new Robot({x: -1, y: 5});
     
     // Initialize the highlight
-    this.highlight = new Highlight({x: -1, y: 4});
+    this.highlight = new Highlight({x: -2, y: 5});
     
     // Create and position the camera 
     this.camera = new THREE.PerspectiveCamera(75, 4.0/3.0, 1, 10000);
     this.camera.position.z = 600;
     
     this.scene = new THREE.Scene();
-    // Add all barriers to scene
-    _.each(this.barriers, function(element, index) {
-           that.scene.add(element.object);
-           });
+    
+    // Add the barriers to the scene
+    for(var x = 0; x < 8; x++){
+      for(var y = 0; y < 8; y++){
+        that.scene.add(this.virtualBoard[x][y].object);
+      }
+    }
+    
     this.scene.add(this.robot.object);
     this.scene.add(this.highlight.object);
     
@@ -165,12 +162,45 @@ Game.prototype.init = function() {
     // Ambient light
     var ambient_light = new THREE.AmbientLight(0x202020);
     this.scene.add(ambient_light);
-    // Background plane
-    var bgplane = new THREE.Mesh(new THREE.PlaneGeometry(800, 800),
-                                 new THREE.MeshLambertMaterial());
+    // Add a Background plane to hold the game board
+    var bgplane = new THREE.Mesh(new THREE.PlaneGeometry(1300, 1300),
+                                 new THREE.MeshBasicMaterial({color: 0x7094FF}));
     bgplane.translateZ(-100);
+    bgplane.translateY(200);
+    bgplane.translateX(75);
     this.scene.add(bgplane);
     
+    // Add a simple background
+    var background = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), new THREE.MeshBasicMaterial({color: 0x00F5B8}));
+    background.translateZ(-200);
+    this.scene.add(background);
+    
+    // Add some 3D text to display remaining shifts
+    
+    
+    // Skybox stuff
+    // Adding the texture images
+    var urlPrefix = "images/";
+    var urls = [ urlPrefix + "xpos.jpg", urlPrefix + "xneg.jpg",
+                urlPrefix + "ypos.jpg", urlPrefix + "yneg.jpg",
+                urlPrefix + "zpos.jpg", urlPrefix + "zneg.jpg" ];
+    var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+    var shader = THREE.ShaderLib[ "cube" ];      // Naming and adding the shader
+    var uniforms = THREE.UniformsUtils.clone( shader.uniforms );    // Importing the texture images
+    uniforms['tCube'].value= textureCube;
+    var material = new THREE.ShaderMaterial( {
+                                            
+                                            fragmentShader: shader.fragmentShader,
+                                            vertexShader: shader.vertexShader,
+                                            uniforms: shader.uniforms
+                                            
+                                            } ),
+    
+    skyMesh = new THREE.Mesh( new THREE.CubeGeometry( 100000, 100000, 100000 ), material );
+    skyMesh.flipSided = true;
+    this.scene.add(skyMesh);
+    
+    // Render the skybox
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setSize(800, 600);
     this.renderer.setClearColor(0xeeeeee, 1.0);
@@ -226,18 +256,16 @@ Game.prototype.legalMove = function(position) {
     return true;
 };
 
+/* Below is my initial attempt to shift rows and columns
 Game.prototype.shiftRow = function(position) {
-    var rowToShift = [];
-    if(this.position.y === 3) {
-        topRow--;
-    }
-    
+    barrierArray[i] = barrierArray[i++];
 }
 
 Game.prototype.shiftCol = function(position) {
-    var colToShift = [];
+    barrierArray[j] = barrierArray[j++];
     //if (this.position.x === 3)
 }
+*/
 
 Game.prototype.handleInput = function() {
     // Robot move left
@@ -272,85 +300,76 @@ Game.prototype.handleInput = function() {
         this.keys[83] = 'triggered';
         var newPosition = {x: this.robot.boardPosition.x,
             y: this.robot.boardPosition.y - 1};
-        if (newPosition == this.barriers.position.y)
-            console.log("You can't move here");
+        //if (newPosition == this.barriers.position.y)
+        //    console.log("You can't move here");
         if (this.legalMove(newPosition) && this.barriers != newPosition) {
             this.robot.moveTo(newPosition);
         }
     }
     // Highlight cube left
-    if (this.keys[37] === true) {
+    if (this.keys[37] === true && shiftMode === false) {
         this.keys[37] = 'triggered';
-        if (shiftMode === false) {  
           var newPosition = {x: this.highlight.boardPosition.x - 1, y: this.highlight.boardPosition.y};
           if (this.legalMove(newPosition)) {
               this.highlight.moveTo(newPosition);
           }
-        }
       }
     // Highlight cube right
-    if (this.keys[39] === true) {
+    if (this.keys[39] === true && shiftMode === false) {
         this.keys[39] = 'triggered';
-        if (shiftMode === false) {
           var newPosition = {x: this.highlight.boardPosition.x + 1, y: this.highlight.boardPosition.y};
           if (this.legalMove(newPosition)) {
               this.highlight.moveTo(newPosition);
           }
-        }
     }
     // Highlight cube up
-    if (this.keys[38] === true) {
+    if (this.keys[38] === true && shiftMode === false) {
         this.keys[38] = 'triggered';
-        if (shiftMode === false) {
-          var newPosition = {x: this.highlight.boardPosition.x, y: this.highlight.boardPosition.y + 1};
-          if (this.legalMove(newPosition)) {
-              this.highlight.moveTo(newPosition);
-          }
+        var newPosition = {x: this.highlight.boardPosition.x, y: this.highlight.boardPosition.y + 1};
+        if (this.legalMove(newPosition)) {
+            this.highlight.moveTo(newPosition);
         }
     }
     // Highlight cube down
-    if (this.keys[40] === true) {
+    if (this.keys[40] === true && shiftMode === false) {
         this.keys[40] = 'triggered';
-        if (shiftMode === false) {
           var newPosition = {x: this.highlight.boardPosition.x, y: this.highlight.boardPosition.y - 1};
           if (this.legalMove(newPosition)) {
               this.highlight.moveTo(newPosition);
           }
-        }
     }
-    // Row shift left
-    if (this.keys[16] === true && this.keys[37] === true) {
-        this.keys[16] = 'triggered';
-        this.keys[37] = 'triggered';
+    
+    // Enable shift mode
+    if (this.keys[16] == true){
         shiftMode = true;
-        console.log("shift engaged");
-        this.shiftRow(highlightPosition);
-        numShifts--;
+    }
+    else {
+        shiftmode = false;
     }
     
     // Row shift right
-    if (this.keys[16] === true && this.keys[39] === true) {
-        this.keys[16] = 'triggered';
+    if (this.keys[39] === true && shiftMode === true) {
         this.keys[39] = 'triggered';
-        shiftMode = true;
-        this.shiftRow(highlightPosition);
+        var b = this.virtualBoard[6][newPosition.y + 3];
+        for (var i = 0; i < 7; i++){
+            if (i == 0){
+                this.virtualBoard[i][newPosition.y + 3] = b;
+                                     continue;
+            }
+            this.virtualBoard[i][newPosition.y + 3] = this.virtualBoard[i - 1][newPosition.y + 3];
+        }
+        // Update object position (equal to array index)
+        for (var i = 0; i < 7; i++){
+          var oldPosition = this.virtualBoard[i][newPosition.y + 3].boardPosition;
+          oldPosition.x = i - 3;
+          this.virtualBoard[i][newPosition.y + 3].moveTo(oldPosition);
+        }
         numShifts--;
     }
     
-    // Column shift up
-    if (this.keys[16] === true && this.keys[38] === true) {
-        this.keys[16] = 'triggered';
-        this.keys[38] = 'triggered';
-        shiftMode = true;
-        this.shiftCol(highlightPosition);
-        numShifts--;
-    }
-    
-    // Column shift down
-    if (this.keys[16] === true && this.keys[40] === true) {
-        this.keys[16] = 'triggered';
-        this.keys[40] = 'triggered';
-        shiftMode = true;
+    // Column shift
+    if (this.keys[13] === true) {
+        this.keys[13] = 'triggered';
         this.shiftCol(highlightPosition);
         numShifts--;
     }
@@ -375,7 +394,7 @@ Game.prototype.start = function() {
 
 Game.prototype.won = function(position) {
     if (this.robot.position.y == 5){
-        console.log("you won!");
+        alert("you won!");
     }
 }
 
