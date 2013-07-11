@@ -8,13 +8,10 @@
 *  http://nathansuniversity.com/index10.html
 */
 
-/*
-* ToDo
-* - Camera
-* - SkyBox
-* - stuff
-*/
-
+/* Set up our global variables 
+ * that we will use throughout the 
+ * rest of the program.
+ */
 var shiftMode = false; 
 
 var robotPosition = null;
@@ -35,23 +32,28 @@ var i;
 
 var j;
 
+// This function sets the offset for the board
 var board_to_world = function(position) {
     // Convert board position into world position
     // This controls where the board is on the screen
     return {x: 100 * position.x, y: 100 * position.y, z: 0};
 };
 
+// This function sets the offset for the robot
 var robot_to_world = function(position) {
     // Converts robot position to world position
     // Controls where the robot is on screen
     return {x: 100 * position.x, y: 100 * position.y, z: 0};
 };
 
+// This function sets the offset for the highlight
 var highlight_to_world = function(position) {
     // Converts highlighted cube position to world position
     return {x: 100 * position.x, y: 100 * position.y, z: 100};
 };
 
+// This function initializes the material used
+// to create the barriers in the game
 var Barrier = function(position) {
     // A Barrier is a game object
     // Default position if unspecified is at square 0, 0
@@ -66,6 +68,8 @@ var Barrier = function(position) {
     this.object.position = board_to_world(this.boardPosition);
 };
 
+// This function initializes the material used
+// to create the robot in the game
 var Robot = function(position) {
     //// A Robot is a game object
     // Default position if unspecified is at square 0, 0
@@ -80,6 +84,8 @@ var Robot = function(position) {
     this.object.position = robot_to_world(this.boardPosition);
 };
 
+// This function initializes the material used
+// to create the highlight in the game
 var Highlight = function(position){
     // Display spotlight on highlighted cube to shift
     // Use color code 0x45e1f5
@@ -140,8 +146,8 @@ Game.prototype.init = function() {
     this.highlight = new Highlight({x: -2, y: 5});
     
     // Create and position the camera 
-    this.camera = new THREE.PerspectiveCamera(75, 4.0/3.0, 1, 10000);
-    this.camera.position.z = 600;
+    this.camera = new THREE.PerspectiveCamera(68, 2, 1, 10000);
+    this.camera.position.z = 500;
     
     this.scene = new THREE.Scene();
     
@@ -159,9 +165,11 @@ Game.prototype.init = function() {
     var spotlight = new THREE.PointLight(0xffffff, 1, 1000);
     spotlight.position.set(0, -100, 300);
     this.scene.add(spotlight);
+    
     // Ambient light
     var ambient_light = new THREE.AmbientLight(0x202020);
     this.scene.add(ambient_light);
+    
     // Add a Background plane to hold the game board
     var bgplane = new THREE.Mesh(new THREE.PlaneGeometry(1300, 1300),
                                  new THREE.MeshBasicMaterial({color: 0x7094FF}));
@@ -176,7 +184,57 @@ Game.prototype.init = function() {
     this.scene.add(background);
     
     // Add some 3D text to display remaining shifts
+    /*
+    var textMesh1, textMesh2, textGeo, material, parent;
+    var firstLetter = true;
+    var text = "three.js",
+    height = 20,
+    size = 70,
+    hover = 30,
+    curveSegments = 4,
+    bevelThickness = 2,
+    bevelSize = 1.5,
+    bevelSegments = 3,
+    bevelEnabled = true,
+    font = "optimer", // helvetiker, optimer, gentilis, droid sans, droid serif
+    weight = "bold", // normal bold
+    style = "normal"; // normal italic
     
+    var mirror = true;
+    var fontMap = {
+        
+        "helvetiker": 0,
+        "optimer": 1,
+        "gentilis": 2,
+        "droid sans": 3,
+        "droid serif": 4
+        
+    };
+    var weightMap = {
+        
+        "normal": 0,
+        "bold": 1
+        
+    };
+    var reverseFontMap = {};
+    var reverseWeightMap = {};
+    for ( var i in fontMap ) reverseFontMap[ fontMap[i] ] = i;
+    for ( var i in weightMap ) reverseWeightMap[ weightMap[i] ] = i;
+    
+    function capitalize( txt ) {
+        
+        return txt.substring( 0, 1 ).toUpperCase() + txt.substring( 1 );
+        
+    }
+    
+    function decimalToHex( d ) {
+        
+        var hex = Number( d ).toString( 16 );
+        hex = "000000".substr( 0, 6 - hex.length ) + hex;
+        return hex.toUpperCase();
+        
+    }
+     */
     
     // Skybox stuff
     // Adding the texture images
@@ -227,7 +285,7 @@ Game.prototype.init = function() {
 };
 
 Game.prototype.render = function(t) {
-    // Bob the camera a bit
+    // Hold the camera in position
     this.camera.position.x = 0; // 700
     this.camera.position.y = -300; // 400
     this.camera.position.z = 850; //500
@@ -246,6 +304,7 @@ Game.prototype.cubeLight = function() {
     this.scene.add(cubeLight);
 };
 
+// This function dictates where the robot and the highlight may move
 Game.prototype.legalMove = function(position) {
     if (position.x < -3 || position.x > 4) {
         return false;
@@ -267,6 +326,7 @@ Game.prototype.shiftCol = function(position) {
 }
 */
 
+// All keyboard input functions go here
 Game.prototype.handleInput = function() {
     // Robot move left
     if (this.keys[65] === true) {
@@ -300,8 +360,6 @@ Game.prototype.handleInput = function() {
         this.keys[83] = 'triggered';
         var newPosition = {x: this.robot.boardPosition.x,
             y: this.robot.boardPosition.y - 1};
-        //if (newPosition == this.barriers.position.y)
-        //    console.log("You can't move here");
         if (this.legalMove(newPosition) && this.barriers != newPosition) {
             this.robot.moveTo(newPosition);
         }
@@ -340,12 +398,14 @@ Game.prototype.handleInput = function() {
     }
     
     // Enable shift mode
+    /*
     if (this.keys[16] == true){
         shiftMode = true;
     }
     else {
         shiftmode = false;
     }
+     */
     
     // Row shift right
     if (this.keys[39] === true && shiftMode === true) {
@@ -392,6 +452,7 @@ Game.prototype.start = function() {
     loop();  
 };
 
+// Display an alert if the robot reaches the end
 Game.prototype.won = function(position) {
     if (this.robot.position.y == 5){
         alert("you won!");
